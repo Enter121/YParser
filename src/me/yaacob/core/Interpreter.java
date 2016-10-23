@@ -4,7 +4,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import me.yaacob.Expressions._for;
+import me.yaacob.Expressions._if;
+import me.yaacob.Expressions._while;
 import me.yaacob.Expressions.out;
+import me.yaacob.Expressions.outln;
 import me.yaacob.interpreter.Cell;
 import me.yaacob.interpreter.Expression;
 import me.yaacob.interpreter.Type;
@@ -20,9 +24,17 @@ public class Interpreter {
 	public ArrayList<Variable> variables=new ArrayList<>();
 	
 	public Interpreter(){
+		
+		
+		
 		this.registerExpression(new out());
+		this.registerExpression(new outln());
+		this.registerExpression(new _if());
+		this.registerExpression(new _while());
+		this.registerExpression(new _for());
 		this.registerType(new Type(String.class));
 		this.registerType(new Type(Float.class));
+		this.registerType(new Type(Integer.class));
 	}
 	
 	public void registerExpression(Expression e){
@@ -43,7 +55,21 @@ public class Interpreter {
 	public void registerClass(Class c){
 		this.removeType(new Type(c));
 	}
-	
+	ArrayList<Variable> todel=new ArrayList<>();
+	public void removeVar(String name){
+		
+		for(Variable v:variables){
+			if(v.name.equals(name)){
+				
+				todel.add(v);
+			}
+			
+		}
+		for(Variable v:todel){
+			variables.remove(v);
+		}
+		todel.clear();
+	}
 	
 	public void parse(String c){
 		cells.clear();
@@ -125,7 +151,6 @@ public class Interpreter {
 		
 		voids.get("main").make(this);
 		
-		
 	}
 	
 	public void prepare(String line){
@@ -133,16 +158,21 @@ public class Interpreter {
 	}
 	
 	public void make(String line){
+		line=line.replace("int", "Integer").replace("boolean", "Boolean").replace("float", "Float").replace("Double", "double").replaceAll("string", "String");
+
 		if(line.startsWith("@")){
 			cells.get(line.replace("@", "")).make(this);
 		}
 		
+		boolean createVar=false;
+		
 		
 		for(Type t:types){
-			line=line.replace("int", "Integer").replace("boolean", "Boolean").replace("float", "Float").replace("Double", "double").replaceAll("string", "String");
-			if(line.contains(t.name)){
+			if(line.startsWith(t.name)){
+			
 				
-								String[] temp=line.replace(t.name, "").split("=");
+				createVar=true;
+				String[] temp=line.replace(t.name, "").split("=");
 				Object[] objects= new Object[temp[1].split(",").length];
 				Class[] classes= new Class[objects.length];
 				
@@ -171,6 +201,7 @@ public class Interpreter {
 				}
 
 				try {
+				;
 					if(t.class_.getConstructor(classes)!=null){
 						try {
 							Variable var = new Variable(t,temp[0],t.class_.getConstructor(classes).newInstance(objects));
@@ -207,10 +238,111 @@ public class Interpreter {
 		}
 		
 		
-		if(line.contains("(") && line.contains(")")){
-			String name=line.split("\\(")[0];
-			String[] args_ =line.split("\\(")[1].replace(")", "").split(",");
-			Object[] args=new Object[args_.length];
+		
+		
+		if(!createVar){
+		for(Variable v:variables){
+			boolean b=false;
+			
+						
+			
+			if(line.replace(v.t.name, "").startsWith(v.name)){
+					line=line.replace("++", "+=1").replace("--", "-=1");
+					String type="";
+					if(line.toString().contains("+=")){
+						type="+=";
+					}else
+						if(line.toString().contains("-=")){
+							type="-=";
+						}else
+							if(line.toString().contains("*=")){
+								type="*=";
+							}else
+								if(line.toString().contains("/=")){
+									type="/=";
+								}
+					
+					if(type!="")b=true;
+					Object val=line.replace(v.name+type, "");
+					boolean changed=false;
+					for(Variable vv:variables){
+						if(vv.name.equals(val.toString())){
+							changed=true;
+							val=vv.value;
+						}
+					}
+					if(!changed){
+						if(Utils.isNumeric(val.toString())){
+							val=Float.parseFloat(val.toString());
+						}
+						
+						
+					}
+					if(val instanceof String){
+						for(Variable vvv:variables){
+							val=((String)val).replace("+"+vvv.name+"+", vvv.value.toString()).replace("+"+vvv.name, vvv.value.toString()).replace(vvv.name+"+", vvv.value.toString());
+
+						}
+					}
+					
+					switch(type){
+					
+					case "+=":
+						if(Utils.isNumeric(val.toString())){
+							v.value=Float.parseFloat(v.value.toString())+Float.parseFloat(val.toString());
+						}else{
+							v.value=v.value.toString()+val;
+						}
+					break;
+					case "-=":
+						if(Utils.isNumeric(val.toString()))v.value=(float)v.value-Float.parseFloat(val.toString());
+						break;
+					case "*=":
+						
+						if(Utils.isNumeric(val.toString()))v.value=(float)v.value*Float.parseFloat(val.toString());
+						break;
+					case "/=":
+						if(Utils.isNumeric(val.toString()))v.value=(float)v.value/Float.parseFloat(val.toString());
+						break;
+					}
+		
+				
+				if(line.contains("=") && !b){
+					Object o=line.split("=")[1];
+					 changed=false;
+					for(Variable vv:variables){
+						if(vv.name.equals(o.toString())){
+							changed=true;
+							o=vv.value;
+						}
+					}
+					if(!changed){
+						if(Utils.isNumeric(o.toString())){
+							o=Float.parseFloat(o.toString());
+						}
+						
+						
+					}
+					
+					v.value=o;
+				}
+				//v.value=;
+				
+			}
+			
+			
+		}
+		}
+		
+		if(line.contains("(")){
+			String name=null;
+			String[] args_=null;
+			Object[] args = null;
+			if(line.split("\\)")[0].split("\\(").length>1){
+			name=line.split("\\(")[0];
+			args_=line.split("\\)")[0].split("\\(")[1].replace(")", "").split(",");
+			args=new Object[args_.length];
+			
 			for(int i=0;i!=args_.length;i++){
 				String arg=args_[i];
 				
@@ -224,13 +356,16 @@ public class Interpreter {
 						if(args[i] instanceof String)args[i]=((String)args[i]).replace("+"+v.name+"+", v.value.toString()).replace("+"+v.name, v.value.toString()).replace(v.name+"+", v.value.toString());
 					
 				}
-				
 			}
 			
+		}else{
+			name=line.split("\\(")[0];
+		}
+		
 			for(Expression e:expressions){
 				if(e.name.equals(name)){
-			
-					e.make(args);
+					
+					e.make(this,line,args);
 					
 				}
 			}
@@ -242,9 +377,9 @@ public class Interpreter {
 					
 				}
 			}
-			
-			
 		}
+			
+		
 		
 		
 	}

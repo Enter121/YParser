@@ -1,5 +1,6 @@
 package me.yaacob.Expressions;
 
+import me.yaacob.core.Interpreter;
 import me.yaacob.interpreter.Expression;
 
 public class outln extends Expression{
@@ -10,8 +11,11 @@ public class outln extends Expression{
 	}
 
 	@Override
-	public void make(Object[] args) {
-		
+	public void make(Interpreter i,String line,Object[] args) {
+		if(args==null){
+			System.out.printf(System.getProperty("line.separator"));
+		}else
+		if(args[0]!=null)System.out.printf(args[0].toString().replace("\"","")+System.getProperty("line.separator"));
 	}
 
 }

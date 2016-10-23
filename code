@@ -1,9 +1,15 @@
 void main{
-float f = 1;
 
-String s="Duda";
-out("Andrzej "+s+" odstep bez sensu "+f);
 
+for(int i=0,i!=10,i++){
+outln();
+for(int j=0,j!=10,j++){
+
+out(" #");
+
+}
+
+}
 
 
 }
