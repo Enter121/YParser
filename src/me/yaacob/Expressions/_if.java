@@ -14,9 +14,11 @@ public class _if extends Expression{
 	@Override
 	public void make(Interpreter i,String line, Object[] args) {
 			Condition c=new Condition(i,args[0]);
-			
+			i.lastCondition=c;
 			String cmd=line.split("\\)")[1];
+			
 			if(c.get())i.make(cmd);
+			
 		
 	}
 

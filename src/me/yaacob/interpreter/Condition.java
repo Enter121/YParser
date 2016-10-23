@@ -75,9 +75,9 @@ if(o.toString().contains("\\|\\|") ||o.toString().contains("&&")){
 				o2=v.value;
 			}
 			
-			if(o1 instanceof String)o1=((String)o1).replace("+"+v.name+"+", v.value.toString()).replace("+"+v.name, v.value.toString()).replace(v.name+"+", v.value.toString());
-			if(o2 instanceof String)o2=((String)o2).replace("+"+v.name+"+", v.value.toString()).replace("+"+v.name, v.value.toString()).replace(v.name+"+", v.value.toString());
-
+			if(o1 instanceof String)o1=((String)o1).replace("+"+v.name+"+", v.value.toString()).replace("+"+v.name, v.value.toString()).replace(v.name+"+", v.value.toString()).replace("\"", "");
+			if(o2 instanceof String)o2=((String)o2).replace("+"+v.name+"+", v.value.toString()).replace("+"+v.name, v.value.toString()).replace(v.name+"+", v.value.toString()).replace("\"", "");
+			
 		}
 		
 		switch(type){
